@@ -1,0 +1,16 @@
+{
+  "description": "WAME work mode: when the project's .claude/wame-mode.local.md says mode: build, adds a short build-mode reminder (no tests, no Pint, no self-check, no docs lookups, no browser, no review agents; record deferred checks) to every prompt. Silent in harden mode. Pure bash, always exits 0.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/build-mode-reminder.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
