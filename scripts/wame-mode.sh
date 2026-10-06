@@ -36,6 +36,18 @@ DEFERRED_FILE="$CLAUDE_DIR/wame-deferred.local.md"
 SETTINGS_FILE="$CLAUDE_DIR/settings.local.json"
 ENV_KEYS=(ENABLE_STOP_REVIEW ENABLE_CODE_SECURITY_REVIEW)
 
+# Refuse to write through a symlink: a planted link in .claude/ (or .gitignore) must not
+# redirect our writes to a file outside the project.
+refuse_symlink() {
+  local target
+  for target in "$@"; do
+    if [ -L "$target" ]; then
+      echo "Refusing to write: $target is a symlink. Remove it and run the command again." >&2
+      exit 73
+    fi
+  done
+}
+
 # Read one frontmatter value (pure bash) from the mode file; empty when absent.
 frontmatter_value() {
   local key="$1" line in_fm=0
@@ -67,6 +79,7 @@ ensure_gitignored() {
   for pair in ".claude/*.local.md|.claude/wame-mode.local.md" ".claude/settings.local.json|.claude/settings.local.json"; do
     pattern="${pair%%|*}"; probe="${pair##*|}"
     if ! git -C "$PROJECT_DIR" check-ignore -q "$probe" 2>/dev/null; then
+      refuse_symlink "$PROJECT_DIR/.gitignore"
       if [ -s "$PROJECT_DIR/.gitignore" ] && [ -n "$(tail -c 1 "$PROJECT_DIR/.gitignore")" ]; then
         printf '\n' >> "$PROJECT_DIR/.gitignore"
       fi
@@ -87,6 +100,7 @@ update_settings_env() {
     echo "settings: python3 not found — edit $SETTINGS_FILE by hand (env: ${ENV_KEYS[*]} = \"0\" in build, remove in harden)."
     return 0
   fi
+  refuse_symlink "$CLAUDE_DIR" "$SETTINGS_FILE"
   python3 -I - "$SETTINGS_FILE" "$op" "${ENV_KEYS[@]}" <<'PY'
 import json, os, sys
 path, op, keys = sys.argv[1], sys.argv[2], sys.argv[3:]
@@ -110,14 +124,18 @@ else:
 if op == "unset" and not data and not os.path.exists(path):
     sys.exit(0)
 os.makedirs(os.path.dirname(path), exist_ok=True)
-with open(path, "w", encoding="utf-8") as fh:
+# Write a temp file and rename it over the target: rename replaces a path, it never follows a link.
+tmp = path + ".tmp-" + str(os.getpid())
+with open(tmp, "x", encoding="utf-8") as fh:
     json.dump(data, fh, indent=2, ensure_ascii=False)
     fh.write("\n")
+os.replace(tmp, path)
 PY
 }
 
 write_mode_file() {
   local mode="$1" since="$2" base="$3" env_state="$4"
+  refuse_symlink "$CLAUDE_DIR" "$MODE_FILE"
   mkdir -p "$CLAUDE_DIR"
   cat > "$MODE_FILE" <<EOF
 ---
@@ -138,6 +156,7 @@ EOF
 }
 
 ensure_deferred_file() {
+  refuse_symlink "$CLAUDE_DIR" "$DEFERRED_FILE"
   [ -f "$DEFERRED_FILE" ] && return 0
   mkdir -p "$CLAUDE_DIR"
   cat > "$DEFERRED_FILE" <<'EOF'
@@ -184,6 +203,7 @@ case "$ACTION" in
     fi
     write_mode_file harden "$(date '+%Y-%m-%dT%H:%M:%S%z')" "" "untouched"
     if [ "$CLEAR_DEFERRED" -eq 1 ] && [ -f "$DEFERRED_FILE" ]; then
+      refuse_symlink "$DEFERRED_FILE"
       rm -f "$DEFERRED_FILE"
       echo "deferred: list cleared"
     else
