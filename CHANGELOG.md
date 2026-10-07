@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-10-07
+
+### Changed
+
+- **`/config` picker explains each choice.** The `default_mode` choices now read
+  `full — tests, Pint and review on every task` and
+  `fast — build now, run the checks once with /work-mode full`, and the field description
+  only says what the option is for. A plugin option in `/config` has no description per
+  choice, so the explanation is part of the choice. The SessionStart hook takes the first
+  word as the mode. A value stored as plain `fast` by 2.0.0 is no longer one of the choices,
+  so `/config` treats it as unset (`full`); pick `fast` again if you had chosen it.
+
 ## [2.0.0] - 2026-10-07
 
 The names did not say what the modes do. "Harden" named two different things — the

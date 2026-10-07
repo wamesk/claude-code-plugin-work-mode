@@ -19,8 +19,8 @@ WAME agents (`laravel-agents`, `laravel-nova-agents`) and the Teamwork skills (`
 `teamwork-task-test`) read the same file.
 
 The default for projects where nobody chose a mode is the plugin option `default_mode` in
-`/config` — now `${user_config.default_mode}` (if that reads literally as a placeholder, the
-option is not set and the default is `full`). A SessionStart hook writes it into the project
+`/config` — now `${user_config.default_mode}` (the first word is the mode; if that reads
+literally as a placeholder, the option is not set and the default is `full`). A SessionStart hook writes it into the project
 (`source: default`); a mode set here (`source: command`) always wins.
 
 ## The script

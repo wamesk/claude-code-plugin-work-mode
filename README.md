@@ -41,8 +41,9 @@ Plain sentences work too: "zapni fast mode", "spusti odložené kontroly", "aký
 ### Default mode in `/config`
 
 The plugin option **`default_mode`** (`full` or `fast`, default `full`) is asked for when the
-plugin is enabled and shows up as a row in `/config` (Claude Code ≥ 2.1.269). It applies to
-every project where nobody chose a mode:
+plugin is enabled and shows up as a row in `/config` (Claude Code ≥ 2.1.269). The picker
+shows each choice with a short explanation next to it, because `/config` has no separate
+description per choice. It applies to every project where nobody chose a mode:
 
 - A SessionStart hook writes it into the project's `.claude/work-mode.local.md` with
   `source: default`, so every plugin that reads the mode sees it.

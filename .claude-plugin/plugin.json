@@ -5,14 +5,17 @@
     "name": "Stanislav Červeňák",
     "email": "info@wame.sk"
   },
-  "version": "2.0.0",
+  "version": "2.0.1",
   "userConfig": {
     "default_mode": {
       "type": "string",
       "title": "Default work mode",
-      "description": "Mode for every project where nobody chose one with /work-mode. full = every check right away. fast = build now, run the checks once with /work-mode full.",
-      "options": ["full", "fast"],
-      "default": "full",
+      "description": "How much Claude checks while it works. Used in every project where nobody chose a mode with /work-mode.",
+      "options": [
+        "full — tests, Pint and review on every task",
+        "fast — build now, run the checks once with /work-mode full"
+      ],
+      "default": "full — tests, Pint and review on every task",
       "required": false
     }
   }

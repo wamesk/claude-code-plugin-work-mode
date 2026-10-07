@@ -6,10 +6,14 @@
 
 cat >/dev/null 2>&1 || true
 
-case "${CLAUDE_PLUGIN_OPTION_DEFAULT_MODE:-}" in
+# The /config picker shows each option with its own short explanation
+# ("fast — build now, …"), so the mode is the first word of the value.
+MODE="${CLAUDE_PLUGIN_OPTION_DEFAULT_MODE:-}"
+MODE="${MODE%% *}"
+case "$MODE" in
   fast|full) ;;
   *) exit 0 ;;
 esac
 
-bash "$(dirname "$0")/../scripts/work-mode.sh" apply-default "$CLAUDE_PLUGIN_OPTION_DEFAULT_MODE" 2>/dev/null || true
+bash "$(dirname "$0")/../scripts/work-mode.sh" apply-default "$MODE" 2>/dev/null || true
 exit 0
