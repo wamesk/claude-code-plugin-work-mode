@@ -158,10 +158,12 @@ migrate_legacy() {
 # rule matches it, and the pattern was appended again on every switch. The literal-line guard
 # keeps the append idempotent even when a later "!" rule re-includes the file on purpose.
 # A tracked file is only reported — an ignore rule never untracks it, and `git rm --cached`
-# is the user's decision.
+# is the user's decision. Only the plugin's own files are checked, by fixed name: a file name
+# taken from the repository (git ls-files on a glob) could carry shell syntax into the
+# suggested command or instructions into Claude's context.
 ensure_gitignored() {
-  local where="${1:-gitignore}" target pattern probe pair tracked
-  local added=()
+  local where="${1:-gitignore}" target pattern probe pair own
+  local added=() tracked=()
   git -C "$PROJECT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
   if [ "$where" = "exclude" ]; then
     target="$(git -C "$PROJECT_DIR" rev-parse --path-format=absolute --git-path info/exclude 2>/dev/null)" || return 0
@@ -180,12 +182,15 @@ ensure_gitignored() {
       printf '%s\n' "$pattern" >> "$target"
       added+=("$pattern")
     fi
-    tracked="$(git -C "$PROJECT_DIR" ls-files -- ":(glob)$pattern" 2>/dev/null | tr '\n' ' ' || true)"
-    tracked="${tracked% }"
-    if [ -n "$tracked" ]; then
-      echo "tracked: $tracked is committed to git, so the ignore rule does not apply to it. To untrack it (the file stays on disk): git rm --cached $tracked"
+  done
+  for own in ".claude/work-mode.local.md" ".claude/work-mode-deferred.local.md" ".claude/settings.local.json"; do
+    if [ -n "$(git -C "$PROJECT_DIR" ls-files -- ":(literal)$own" 2>/dev/null || true)" ]; then
+      tracked+=("$own")
     fi
   done
+  if [ "${#tracked[@]}" -gt 0 ]; then
+    echo "tracked: ${tracked[*]} committed to git, so the ignore rule does not apply. To untrack (the files stay on disk): git rm --cached ${tracked[*]}"
+  fi
   if [ "${#added[@]}" -gt 0 ] && [ "$where" = "gitignore" ]; then
     echo "gitignore: appended ${added[*]} to .gitignore (was missing) — commit it when convenient."
   fi

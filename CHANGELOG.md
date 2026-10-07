@@ -16,7 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is never appended twice. The same fix applies to `.git/info/exclude` (SessionStart hook).
 - **A tracked file is reported.** The switch prints `tracked: <path> …` with the
   `git rm --cached <path>` that untracks it; an ignore rule alone never does. The plugin does
-  not run it — the skill tells the user to.
+  not run it — the skill tells the user to. Only the plugin's own files are checked, by fixed
+  name (`.claude/work-mode.local.md`, `.claude/work-mode-deferred.local.md`,
+  `.claude/settings.local.json`): a file name read from the repository could otherwise put
+  shell syntax into the suggested command or instructions into Claude's context.
 
 ## [2.0.1] - 2026-10-07
 
