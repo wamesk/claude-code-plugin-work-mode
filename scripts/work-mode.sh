@@ -153,8 +153,14 @@ migrate_legacy() {
 # Make sure .claude/*.local.md and .claude/settings.local.json are git-ignored.
 # $1 = "gitignore" (shared, the user commits it) or "exclude" (.git/info/exclude, local only —
 # used by the SessionStart hook, which must not leave a visible change in a repository).
+#
+# check-ignore needs --no-index: without it git calls a tracked file "not ignored" even when a
+# rule matches it, and the pattern was appended again on every switch. The literal-line guard
+# keeps the append idempotent even when a later "!" rule re-includes the file on purpose.
+# A tracked file is only reported — an ignore rule never untracks it, and `git rm --cached`
+# is the user's decision.
 ensure_gitignored() {
-  local where="${1:-gitignore}" target pattern probe pair
+  local where="${1:-gitignore}" target pattern probe pair tracked
   local added=()
   git -C "$PROJECT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
   if [ "$where" = "exclude" ]; then
@@ -164,7 +170,8 @@ ensure_gitignored() {
   fi
   for pair in ".claude/*.local.md|.claude/work-mode.local.md" ".claude/settings.local.json|.claude/settings.local.json"; do
     pattern="${pair%%|*}"; probe="${pair##*|}"
-    if ! git -C "$PROJECT_DIR" check-ignore -q "$probe" 2>/dev/null; then
+    if ! git -C "$PROJECT_DIR" check-ignore -q --no-index "$probe" 2>/dev/null \
+      && ! { [ -f "$target" ] && grep -qxF -- "$pattern" "$target"; }; then
       refuse_symlink "$target"
       mkdir -p "$(dirname "$target")"
       if [ -s "$target" ] && [ -n "$(tail -c 1 "$target")" ]; then
@@ -172,6 +179,11 @@ ensure_gitignored() {
       fi
       printf '%s\n' "$pattern" >> "$target"
       added+=("$pattern")
+    fi
+    tracked="$(git -C "$PROJECT_DIR" ls-files -- ":(glob)$pattern" 2>/dev/null | tr '\n' ' ' || true)"
+    tracked="${tracked% }"
+    if [ -n "$tracked" ]; then
+      echo "tracked: $tracked is committed to git, so the ignore rule does not apply to it. To untrack it (the file stays on disk): git rm --cached $tracked"
     fi
   done
   if [ "${#added[@]}" -gt 0 ] && [ "$where" = "gitignore" ]; then

@@ -76,6 +76,9 @@ Relay the script output in two or three lines. Additionally:
   (the `security-guidance` Stop/SubagentStop hook), that **`/work-mode full` always runs a
   security review**, and that the env change may need a **session restart** to take effect.
 - **.gitignore changed:** say which line was appended and that it is theirs to commit.
+- **tracked:** say that git tracks the named file, so the ignore rule does not apply to it,
+  and that `git rm --cached <path>` untracks it (the file stays on disk) — the user runs it,
+  never do it yourself.
 - **migrated:** say that the 1.x files `.claude/wame-mode.local.md` /
   `.claude/wame-deferred.local.md` now have the new names. If git tracks or stages the old
   file, tell the user to run `git rm --cached <old path>` — never do it yourself.

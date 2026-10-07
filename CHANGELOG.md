@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-10-07
+
+### Fixed
+
+- **No duplicate `.gitignore` lines for a tracked file.** When git tracked
+  `.claude/settings.local.json` (or a `.claude/*.local.md` file), `git check-ignore` reported
+  it as not ignored even though `.gitignore` already had the rule, so every switch appended the
+  same line again. The check now runs with `--no-index`, and a line that is already in the file
+  is never appended twice. The same fix applies to `.git/info/exclude` (SessionStart hook).
+- **A tracked file is reported.** The switch prints `tracked: <path> …` with the
+  `git rm --cached <path>` that untracks it; an ignore rule alone never does. The plugin does
+  not run it — the skill tells the user to.
+
 ## [2.0.1] - 2026-10-07
 
 ### Changed

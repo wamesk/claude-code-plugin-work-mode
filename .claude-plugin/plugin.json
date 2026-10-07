@@ -5,7 +5,7 @@
     "name": "Stanislav Červeňák",
     "email": "info@wame.sk"
   },
-  "version": "2.0.1",
+  "version": "2.0.2",
   "userConfig": {
     "default_mode": {
       "type": "string",

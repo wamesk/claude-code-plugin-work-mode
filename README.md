@@ -77,7 +77,9 @@ change them is reported as a question instead.
 | `.claude/settings.local.json` | In fast mode `env.ENABLE_STOP_REVIEW` and `env.ENABLE_CODE_SECURITY_REVIEW` = `"0"`. |
 
 `.claude/*.local.md` and `.claude/settings.local.json` are appended to `.gitignore` only when
-they are not ignored yet — you are told when that happens.
+they are not ignored yet — you are told when that happens. If git already tracks one of those
+files, an ignore rule does not apply to it: the switch says so (`tracked: …`) and names the
+`git rm --cached <path>` that untracks it. The plugin never runs it for you.
 
 **Security note:** in fast mode the `security-guidance` plugin's automatic Stop/SubagentStop
 review is switched off through those env keys (it may need a session restart to take effect).
