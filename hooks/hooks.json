@@ -1,12 +1,23 @@
 {
-  "description": "WAME work mode: when the project's .claude/wame-mode.local.md says mode: build, adds a short build-mode reminder (no tests, no Pint, no self-check, no docs lookups, no browser, no review agents; record deferred checks) to every prompt. Silent in harden mode. Pure bash, always exits 0.",
+  "description": "Work mode: SessionStart applies the default_mode plugin option (/config) to a project that has no mode set by hand; UserPromptSubmit adds a short fast-mode reminder (no tests, no Pint, no self-check, no docs lookups, no browser, no review agents; record deferred checks) to every prompt when the project's .claude/work-mode.local.md says mode: fast. Silent in full mode. Pure bash, always exits 0.",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/apply-default-mode.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/build-mode-reminder.sh\"",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/fast-mode-reminder.sh\"",
             "timeout": 5
           }
         ]

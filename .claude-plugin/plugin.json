@@ -1,9 +1,19 @@
 {
-  "name": "wame-work-mode",
-  "description": "Two work modes for Claude Code: build and harden. Build mode builds fast — no tests, no Pint, no five-dimension self-check, no framework/docs lookups, no browser, no review agents — and records every touched file or screen in .claude/wame-deferred.local.md; a UserPromptSubmit hook reminds Claude of it on every prompt (pure bash, silent in harden mode). /wame-harden then runs every deferred check once, in order — tests for the touched areas (filtered, then the project's full suite), Pint --dirty, the five-dimension self-check (ui_ux, performance, security, reachability, framework), a security review and a code review (laravel-agents security-auditor and code-reviewer-laravel when installed), docs/CLAUDE.md updates and one visual pass via the chrome-devtools MCP if a UI changed — fixes the findings while keeping the agreed behaviour, look and texts, and switches back to harden. /wame-mode build|harden|status stores the mode in the project's .claude/wame-mode.local.md (git-ignored), read by laravel-agents, laravel-nova-agents, teamwork-task and teamwork-task-test; build mode can also switch off the security-guidance plugin's automatic Stop review via .claude/settings.local.json env (restored by harden — /wame-harden always runs a security review). Never installs or uninstalls Playwright, Puppeteer or Dusk for a single run: the chrome-devtools MCP or the project's own runner, and a missing runner is asked for once and installed permanently.",
+  "name": "work-mode",
+  "description": "Two work modes for Claude Code: fast and full. Fast mode builds fast — no tests, no Pint, no five-dimension self-check, no framework/docs lookups, no browser, no review agents — and records every touched file or screen in .claude/work-mode-deferred.local.md; a UserPromptSubmit hook reminds Claude of it on every prompt (pure bash, silent in full mode). /work-mode full then runs every deferred check once, in order — tests for the touched areas (filtered, then the project's full suite), Pint --dirty, the five-dimension self-check (ui_ux, performance, security, reachability, framework), a security review and a code review (laravel-agents security-auditor and code-reviewer-laravel when installed), docs/CLAUDE.md updates and one visual pass via the chrome-devtools MCP if a UI changed — fixes the findings while keeping the agreed behaviour, look and texts, and switches to full. /work-mode without an argument shows the current mode and offers the choices; /work-mode fast|full|status switches directly. The mode lives in the project's .claude/work-mode.local.md (git-ignored), read by laravel-agents, laravel-nova-agents, teamwork-task and teamwork-task-test; the plugin option default_mode (/config) sets the mode for projects where nobody chose one, through a SessionStart hook. Fast mode can also switch off the security-guidance plugin's automatic Stop review via .claude/settings.local.json env (restored by full — /work-mode full always runs a security review). v2.0.0 renames wame-work-mode to work-mode, build to fast and harden to full; the 1.x files are moved on the first switch. Never installs or uninstalls Playwright, Puppeteer or Dusk for a single run: the chrome-devtools MCP or the project's own runner, and a missing runner is asked for once and installed permanently.",
   "author": {
     "name": "Stanislav Červeňák",
     "email": "info@wame.sk"
   },
-  "version": "1.0.0"
+  "version": "2.0.0",
+  "userConfig": {
+    "default_mode": {
+      "type": "string",
+      "title": "Default work mode",
+      "description": "Mode for every project where nobody chose one with /work-mode. full = every check right away. fast = build now, run the checks once with /work-mode full.",
+      "options": ["full", "fast"],
+      "default": "full",
+      "required": false
+    }
+  }
 }

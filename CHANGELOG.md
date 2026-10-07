@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-10-07
+
+The names did not say what the modes do. "Harden" named two different things — the
+mode where every check runs right away, and the command that runs the checks fast mode
+skipped — and fitted neither well. The plugin also had no global default and no menu.
+
+### Changed
+
+- **Renamed** the plugin `wame-work-mode` → `work-mode` (repository
+  `claude-code-plugin-work-mode`) and the modes `build` → **`fast`** and `harden` →
+  **`full`**.
+- **One command.** The skills `wame-mode` and `wame-harden` are merged into `/work-mode`.
+  `/work-mode fast|full|status` switches directly; `/work-mode full` runs the pending
+  deferred checks once (the former `/wame-harden`, now `reference/full-pass.md`) and then
+  switches; `/work-mode full --no-checks` only switches. The merged skill no longer
+  pre-approves Bash through `allowed-tools`, because it now also runs the full pass.
+- **Files renamed:** `.claude/wame-mode.local.md` → `.claude/work-mode.local.md`,
+  `.claude/wame-deferred.local.md` → `.claude/work-mode-deferred.local.md`,
+  `scripts/wame-mode.sh` → `scripts/work-mode.sh`, `hooks/build-mode-reminder.sh` →
+  `hooks/fast-mode-reminder.sh`. The mode file gains `source: command|default`.
+
+### Added
+
+- **Menu:** `/work-mode` without an argument shows the current mode and the number of
+  deferred checks and asks which mode to use (fast, full with the checks, full without
+  them, keep as it is).
+- **Default in `/config`:** plugin option `default_mode` (`full` | `fast`, default
+  `full`). A new SessionStart hook (`hooks/apply-default-mode.sh`, script action
+  `apply-default`) writes it into a project that has no mode, with `source: default`, and
+  keeps such projects in step when the option changes. A mode set with `/work-mode` is
+  never overwritten. The hook only acts in a git repository, ignores its files through
+  `.git/info/exclude` (no visible change in the repository) and never touches the
+  security-review env.
+
+### Deprecated
+
+- The 1.x names still work in 2.x: `build` / `harden` as arguments, and
+  `.claude/wame-mode.local.md` / `.claude/wame-deferred.local.md` are read and moved to the
+  new names on the first switch (deferred entries kept; `status` stays read-only). They
+  will be removed in 3.0.0.
+
 ## [1.0.0] - 2026-10-06
 
 Agents spent most of every prompt verifying instead of building: tests, Pint, the
