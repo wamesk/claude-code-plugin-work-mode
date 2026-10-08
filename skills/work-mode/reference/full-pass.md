@@ -76,6 +76,10 @@ tab), take a snapshot/screenshot, check the console and that the screen is reach
 menu. Compare against what was agreed; fix rendering bugs, not design. Rebuild assets the project
 commits (e.g. `dist/`) if sources changed. Skip with `--no-visual`.
 
+Screens marked `live in Chrome` in the deferred list were shaped with the user watching: their
+look is agreed. Check only the console, reachability and what the live loop never covered
+(other breakpoints, empty and error states); reuse the live tab when it is still open.
+
 **Browser rule:** never install or uninstall Playwright, Puppeteer, Dusk or any other browser
 tooling for a single run. Use the chrome-devtools MCP or the runner the project already has. A
 missing runner means: ask the user once, then install it permanently (a committed dev

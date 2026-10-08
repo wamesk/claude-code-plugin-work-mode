@@ -12,10 +12,28 @@ This plugin splits the work:
 
 | Mode | What Claude does |
 |------|------------------|
-| **fast** | Builds. No tests (writing or running), no Pint, no self-check, no framework/docs lookups, no browser, no review agents. Every touched file/screen is appended to `.claude/work-mode-deferred.local.md`; replies end with `Deferred checks: …`. |
+| **fast** | Builds. No tests (writing or running), no Pint, no self-check, no framework/docs lookups, no browser checks, no review agents. Visual changes are made live in Chrome. Every touched file/screen is appended to `.claude/work-mode-deferred.local.md`; replies end with `Deferred checks: …`. |
 | **full** (default) | All rules of the WAME agents and skills apply unchanged. |
 
 At the end, `/work-mode full` runs everything that was skipped — once — and switches to full.
+
+### Visual work live in Chrome (fast mode)
+
+When a task changes something on a screen, fast mode works in this order:
+
+1. **The minimum the screen needs to render** — route, controller or component skeleton, view,
+   data to show. Nothing else yet.
+2. **The visual edits, live** — the screen opens in a Chrome tab via the chrome-devtools MCP
+   (Vite dev server started in the background when the project uses it, so every edit shows up
+   through HMR). You watch the tab and comment in the chat; a comment on the look is applied
+   before anything else.
+3. **Everything else** — logic, validation, policies, persistence, menu entries, other languages.
+
+The live part runs in the main conversation, never in a subagent. Every change goes into the
+source files. The tab uses the MCP's own Chrome profile — when the screen needs a login, you log
+in there once. Without the chrome-devtools MCP, Claude gives you the URL to open yourself.
+The procedure is in [`skills/work-mode/reference/live-visual.md`](skills/work-mode/reference/live-visual.md).
+What you approve on screen is the agreed look that `/work-mode full` keeps.
 
 ## Installation
 
@@ -92,8 +110,10 @@ review is switched off through those env keys (it may need a session restart to 
   no network, silent in full mode).
 - `laravel-agents` ≥ 1.3.0 and `laravel-nova-agents` ≥ 1.3.0 — skip tests, Pint, lookups,
   self-check and browser work in fast mode and end with `Deferred checks: …`.
-- `teamwork-task` ≥ 1.7.0 and `teamwork-task-test` ≥ 1.4.0 — `--mode=fast|full` and the
-  project's mode file map onto their existing switches.
+- `teamwork-task` ≥ 1.7.0 — `--mode=fast|full` and the project's mode file map onto its
+  existing switches.
+- `teamwork-task-test` ≥ 1.5.0 does **not** read the mode: a QA pass always runs full, in a
+  fast-mode project too (1.3.0–1.4.0 followed it).
 
 A brief that says "fast mode" / "rýchly režim" switches an agent to fast mode too.
 
@@ -110,6 +130,7 @@ and `harden` → `full`, and the commands `/wame-mode` + `/wame-harden` → `/wo
 
 ## Browser rule
 
+In fast mode the browser is the canvas for live visual work, never a verification step.
 Never install or uninstall Playwright, Puppeteer, Dusk or any other browser tooling for a
 single run. Use the chrome-devtools MCP or the runner the project already has. A missing
 runner means: ask once, then install it permanently (a committed dev dependency) and keep it.

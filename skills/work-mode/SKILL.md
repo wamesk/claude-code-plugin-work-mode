@@ -1,6 +1,6 @@
 ---
 name: work-mode
-description: Use when the user wants to switch how much verification Claude does while working, or to run the checks that fast mode skipped — "/work-mode", "/work-mode fast", "/work-mode full", "/work-mode status", "fast mode", "rýchly režim", "zapni fast mode", "staviaj rýchlo bez testov", "vypni testy a review kým staviame", "prepni na full", "spusti odložené kontroly", "teraz otestuj a skontroluj všetko", "dotiahni to", "aký je režim", "run the deferred checks", and the 1.x names "/wame-mode", "/wame-harden", "build mode", "harden". Without an argument it shows the current mode and asks which one to use. fast writes the project's .claude/work-mode.local.md and starts the deferred list .claude/work-mode-deferred.local.md; full runs every deferred check once (tests, Pint, five-dimension self-check, security and code review, docs, one visual pass), fixes the findings and switches to full; full --no-checks only switches.
+description: Use when the user wants to switch how much verification Claude does while working, or to run the checks that fast mode skipped — "/work-mode", "/work-mode fast", "/work-mode full", "/work-mode status", "fast mode", "rýchly režim", "zapni fast mode", "staviaj rýchlo bez testov", "vypni testy a review kým staviame", "prepni na full", "spusti odložené kontroly", "teraz otestuj a skontroluj všetko", "dotiahni to", "aký je režim", "run the deferred checks", and the 1.x names "/wame-mode", "/wame-harden", "build mode", "harden". Without an argument it shows the current mode and asks which one to use. fast writes the project's .claude/work-mode.local.md and starts the deferred list .claude/work-mode-deferred.local.md, and in fast mode visual changes are made live in Chrome (the screen first, then the rest); full runs every deferred check once (tests, Pint, five-dimension self-check, security and code review, docs, one visual pass), fixes the findings and switches to full; full --no-checks only switches.
 argument-hint: "[fast [--keep-security-review] | full [--no-checks] [--no-full-suite] [--no-visual] | status]"
 ---
 
@@ -10,13 +10,14 @@ Two work modes for a project:
 
 | Mode | What Claude does |
 |---|---|
-| **fast** | Builds fast. No tests (neither writing nor running), no Pint/formatter, no 5-dimension self-check, no framework-version or docs lookups, no browser or click-through checks, no review/audit agents. Every touched file or screen is appended to `.claude/work-mode-deferred.local.md`; replies end with `Deferred checks: …`. |
+| **fast** | Builds fast. No tests (neither writing nor running), no Pint/formatter, no 5-dimension self-check, no framework-version or docs lookups, no browser checks or click-throughs, no review/audit agents. **Visual work happens live in Chrome**: the minimum the screen needs to render first, then the visual edits in a Chrome tab the user watches and comments on, then everything else ([reference/live-visual.md](reference/live-visual.md)). Every touched file or screen is appended to `.claude/work-mode-deferred.local.md`; replies end with `Deferred checks: …`. |
 | **full** (default) | Every rule of the WAME agents and skills applies unchanged. `/work-mode full` first runs everything that fast mode deferred, once. |
 
 The mode lives in `.claude/work-mode.local.md` (YAML frontmatter, `mode: fast|full`). The
-plugin's `UserPromptSubmit` hook reads it and, in fast mode, reminds Claude on every prompt. The
-WAME agents (`laravel-agents`, `laravel-nova-agents`) and the Teamwork skills (`teamwork-task`,
-`teamwork-task-test`) read the same file.
+plugin's `UserPromptSubmit` hook reads it and, in fast mode, reminds Claude on every prompt —
+including the live-visual order and the path to its procedure. The WAME agents
+(`laravel-agents`, `laravel-nova-agents`) and the `teamwork-task` skill read the same file.
+`teamwork-task-test` ≥ 1.5.0 does not: a QA pass always runs full.
 
 The default for projects where nobody chose a mode is the plugin option `default_mode` in
 `/config` — now `${user_config.default_mode}` (the first word is the mode; if that reads
@@ -72,6 +73,8 @@ to this skill's base directory ("Base directory for this skill: …").
 
 Relay the script output in two or three lines. Additionally:
 
+- **fast:** say that visual changes will be made live in Chrome — the screen first, then the
+  rest — so the user can watch and comment as it happens.
 - **fast with the env set:** say plainly that the **automatic security review is now off**
   (the `security-guidance` Stop/SubagentStop hook), that **`/work-mode full` always runs a
   security review**, and that the env change may need a **session restart** to take effect.
@@ -89,6 +92,8 @@ Switching alone runs no tests, no Pint and no check — only the full pass in st
 
 ## Browser rule (both modes)
 
-Never install or uninstall Playwright, Puppeteer, Dusk or any other browser tooling for a single
-run. Use the chrome-devtools MCP or the runner the project already has. A missing runner means:
-ask the user once, then install it permanently (a committed dev dependency) and leave it there.
+In fast mode the browser is the canvas for live visual work (chrome-devtools MCP, one foreground
+tab), never a verification step. Never install or uninstall Playwright, Puppeteer, Dusk or any
+other browser tooling for a single run. Use the chrome-devtools MCP or the runner the project
+already has. A missing runner means: ask the user once, then install it permanently (a committed
+dev dependency) and leave it there.

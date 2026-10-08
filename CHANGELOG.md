@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-10-08
+
+Fast mode built screens blind: no browser at all until `/work-mode full`, so the user saw the
+look only at the end and every visual comment cost another round.
+
+### Added
+
+- **Visual work live in Chrome (fast mode).** When a task changes something on a screen, fast
+  mode now works in a fixed order: (1) only the minimum the screen needs to render, (2) the
+  visual edits live in a foreground Chrome tab via the chrome-devtools MCP — Vite dev server
+  started in the background for HMR, the user watches and comments, comments on the look come
+  first — and (3) everything else. The live part runs in the main conversation, every change
+  goes into the source files, and a login in the MCP's Chrome profile is left to the user.
+  Procedure: `skills/work-mode/reference/live-visual.md`; the fast-mode reminder hook names
+  that file and the order on every prompt.
+- Screens shaped live are marked `live in Chrome` in the deferred list; the full pass treats
+  their look as agreed and checks only the console, reachability, other breakpoints and the
+  empty and error states.
+
+### Changed
+
+- **`teamwork-task-test` is no longer a reader of the mode.** From its 1.5.0 a QA pass always
+  runs full; the fast-mode reminder says so too, so it does not pull a QA run into fast mode.
+
 ## [2.0.2] - 2026-10-07
 
 ### Fixed

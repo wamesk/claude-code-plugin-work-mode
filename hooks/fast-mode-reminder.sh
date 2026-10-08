@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # UserPromptSubmit hook — when the project is in fast mode, add a short reminder to the
-# prompt's context. Silent (no output) in every other case. Pure bash, no network, never
-# blocks the prompt: always exits 0.
+# prompt's context, including the live-in-Chrome rule for visual work. Silent (no output) in
+# every other case. Pure bash, no network, never blocks the prompt: always exits 0.
 
 cat >/dev/null 2>&1 || true
 
@@ -28,7 +28,12 @@ case "$mode" in
   *) exit 0 ;;
 esac
 
-reminder="FAST MODE is on for this project (.claude/work-mode.local.md). Build fast: do NOT write or run tests, do NOT run Pint or other formatters, skip the 5-dimension self-check, skip framework version and docs lookups, no browser or click-through checks, no review or audit agents. Tell subagents in their brief: fast mode. Never install or uninstall Playwright, Puppeteer, Dusk or other browser tooling. Append every touched file or screen to .claude/work-mode-deferred.local.md as one line: - <path or screen> — <what changed> — skipped: <checks>. Never stage or commit that file. End with a line Deferred checks: <list>. The user runs /work-mode full once at the end to run everything."
+# The live-visual procedure ships with the plugin; escape the path for the JSON string.
+live_visual="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)/skills/work-mode/reference/live-visual.md"
+live_visual="${live_visual//\\/\\\\}"
+live_visual="${live_visual//\"/\\\"}"
+
+reminder="FAST MODE is on for this project (.claude/work-mode.local.md). Build fast: do NOT write or run tests, do NOT run Pint or other formatters, skip the 5-dimension self-check, skip framework version and docs lookups, no browser checks or click-throughs, no review or audit agents. Tell subagents in their brief: fast mode. VISUAL WORK IS LIVE IN CHROME: when the task changes anything on a screen, (1) build only the minimum the screen needs to render, (2) open it in Chrome via the chrome-devtools MCP (one foreground tab, tell the user the URL) and make the visual edits live in the main conversation while the user watches and comments (their comments come first), (3) only then everything else. Procedure: $live_visual (read it once before the first visual edit). Never install or uninstall Playwright, Puppeteer, Dusk or other browser tooling. Append every touched file or screen to .claude/work-mode-deferred.local.md as one line: - <path or screen> — <what changed> — skipped: <checks>. Never stage or commit that file. End with a line Deferred checks: <list>. The user runs /work-mode full once at the end to run everything. /teamwork-task-test ignores fast mode and always runs full."
 
 printf '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"%s"}}\n' "$reminder"
 exit 0
