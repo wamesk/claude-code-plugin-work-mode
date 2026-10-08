@@ -12,7 +12,7 @@ This plugin splits the work:
 
 | Mode | What Claude does |
 |------|------------------|
-| **fast** | Builds. No tests (writing or running), no Pint, no self-check, no framework/docs lookups, no browser checks, no review agents. Visual changes are made live in Chrome. Every touched file/screen is appended to `.claude/work-mode-deferred.local.md`; replies end with `Deferred checks: …`. |
+| **fast** | Builds. No tests (writing or running), no Pint, no self-check, no framework/docs lookups, no browser checks, no review agents — checks are skipped, UI/UX and accessibility are not. Visual changes are made live in Chrome and wait for your approval. Every touched file/screen is appended to `.claude/work-mode-deferred.local.md`; replies end with `Deferred checks: …`. |
 | **full** (default) | All rules of the WAME agents and skills apply unchanged. |
 
 At the end, `/work-mode full` runs everything that was skipped — once — and switches to full.
@@ -25,9 +25,19 @@ When a task changes something on a screen, fast mode works in this order:
    data to show. Nothing else yet.
 2. **The visual edits, live** — the screen opens in a Chrome tab via the chrome-devtools MCP
    (Vite dev server started in the background when the project uses it, so every edit shows up
-   through HMR). You watch the tab and comment in the chat; a comment on the look is applied
-   before anything else.
-3. **Everything else** — logic, validation, policies, persistence, menu entries, other languages.
+   through HMR). You watch the tab and comment in the chat.
+3. **Approval stop** — Claude lists in a few bullets what to check and agree to (elements,
+   texts, states, breakpoints, which data is only a stub) and waits. Comments are applied live
+   and the list is shown again, until you approve ("ok", "pokračuj").
+4. **Everything else, after the approval** — logic, validation, policies, persistence, menu
+   entries, other languages. A comment on the look still interrupts it.
+
+A task with no visual change skips all of this — no Chrome, no approval stop.
+
+Fast mode skips checks, not UI quality: the screen is built with the best UI/UX and
+accessibility from the start, by the `ui_ux` rules of `laravel-agents` / `laravel-nova-agents`.
+The rest of the code follows the project's sibling code for performance, security and
+reachability; frameworks, standards and best practices are checked by `/work-mode full`.
 
 The live part runs in the main conversation, never in a subagent. Every change goes into the
 source files. The tab uses the MCP's own Chrome profile — when the screen needs a login, you log
@@ -109,9 +119,10 @@ review is switched off through those env keys (it may need a session restart to 
 - `UserPromptSubmit` hook of this plugin — fast-mode reminder on every prompt (pure bash,
   no network, silent in full mode).
 - `laravel-agents` ≥ 1.3.0 and `laravel-nova-agents` ≥ 1.3.0 — skip tests, Pint, lookups,
-  self-check and browser work in fast mode and end with `Deferred checks: …`.
+  self-check and browser work in fast mode and end with `Deferred checks: …`; from 1.4.0
+  their `ui_ux` rules (UI/UX and accessibility) apply in fast mode too.
 - `teamwork-task` ≥ 1.7.0 — `--mode=fast|full` and the project's mode file map onto its
-  existing switches.
+  existing switches; from 1.8.0 fast mode keeps the `ui_ux` build-time dimension.
 - `teamwork-task-test` ≥ 1.5.0 does **not** read the mode: a QA pass always runs full, in a
   fast-mode project too (1.3.0–1.4.0 followed it).
 

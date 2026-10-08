@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-10-08
+
+2.1.0 kept going with the rest of the task while the user was still looking at the screen,
+so a comment on the look could arrive after the logic was already built around it.
+
+### Added
+
+- **Approval stop.** After the live visual work Claude ends the turn with a short bullet
+  checklist of what to check and agree to — named elements, the new texts, the visible
+  states, the breakpoints done, which data is only a stub — and the step 4 that follows.
+  Comments are applied live and the checklist is shown again until the user approves; only
+  then comes everything else (not in a subagent, not in the background). An approval with a
+  small tweak applies it and continues. The deferred-list marker is now
+  `approved live in Chrome`.
+- **Fast skips checks, not UI quality.** The reminder and `live-visual.md` point at the
+  `ui_ux` rules of `laravel-agents` / `laravel-nova-agents` (UI/UX and accessibility apply
+  while building); the rest of the code follows the sibling code for performance, security
+  and reachability, and `/work-mode full` checks frameworks, standards and best practices.
+
+### Changed
+
+- **No visual change, no live part.** Decided once before the first edit: a task without a
+  visual change starts no dev server, opens no Chrome and has no approval stop.
+
 ## [2.1.0] - 2026-10-08
 
 Fast mode built screens blind: no browser at all until `/work-mode full`, so the user saw the

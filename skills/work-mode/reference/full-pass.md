@@ -76,8 +76,8 @@ tab), take a snapshot/screenshot, check the console and that the screen is reach
 menu. Compare against what was agreed; fix rendering bugs, not design. Rebuild assets the project
 commits (e.g. `dist/`) if sources changed. Skip with `--no-visual`.
 
-Screens marked `live in Chrome` in the deferred list were shaped with the user watching: their
-look is agreed. Check only the console, reachability and what the live loop never covered
+Screens marked `approved live in Chrome` in the deferred list were approved by the user on
+screen: their look is agreed. Check only the console, reachability and what the live loop never covered
 (other breakpoints, empty and error states); reuse the live tab when it is still open.
 
 **Browser rule:** never install or uninstall Playwright, Puppeteer, Dusk or any other browser
